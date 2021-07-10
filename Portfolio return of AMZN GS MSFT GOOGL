@@ -1,0 +1,42 @@
+import numpy as np
+import yfinance as yf
+import matplotlib
+
+#list stock that would like to put in the portfolio
+tickers=['amzn','gs','msft','googl']
+data= yf.download(tickers,start='2018-01-01',end='2020-12-30')['Adj Close']
+print(data)
+
+#testing first row of data
+firstrow=data.iloc[0]
+print(firstrow)
+
+#Normalize data to 100= show percentage movement of price compare to base price
+#help to know which stock perform better historicly
+normalizedata=((data/firstrow)*100).plot(figsize=(15,6))
+normalizedata.set_title('Normalize Return of Stocks 2018-2020')
+normalizedata.set_ylabel('Percentage change%')
+
+#Analyze to see simple return of stock over the same time period
+srdata=((data/data.shift(1))-1)
+print('Simple Return=',srdata)
+
+#calculate average annual return of each stock
+average_rt=srdata.mean()
+annual_rt=(average_rt)*250
+print('Annual Return=',annual_rt,'%')
+
+#Create portfolio weight assume 0.25 of each stock
+portweight_1=np.array([0.25,0.25,0.25,0.25])
+#using np.dot = help calculate vector and metrix product
+portfolio_1=np.dot(annual_rt,portweight_1)*100
+print ('Portfolio Return_1=',portfolio_1,'%')
+
+#compare portfolio weight to different ratio
+portweight_2=np.array([0.40,0.10,0.40,0.10])
+#using np.dot = help calculate vector and metrix product
+portfolio_2=np.dot(annual_rt,portweight_2)*100
+print ('Portfolio Return_2=',portfolio_2,'%')
+portweight_3=np.array([0.10,0.40,0.10,0.40])
+portfolio_3=np.dot(annual_rt,portweight_3)*100
+print ('Portfolio Return_3=',portfolio_3,'%')
