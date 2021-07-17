@@ -1,0 +1,70 @@
+import numpy as np
+import yfinance as yf
+import pandas as pd
+
+#list stock that would like to 
+tickers=['amzn','^gspc']
+data= yf.download(tickers,start='2018-01-01',end='2020-12-30')['Adj Close']
+print(data)
+
+#testing first row of data
+firstrow=data.iloc[0]
+print(firstrow)
+
+#Normalize data to 100= show percentage movement of price compare to base price
+#help to know which stock perform better historicly
+normalizedata=((data/firstrow)*100).plot(figsize=(15,6))
+normalizedata.set_title('Normalize Return of Stocks 2018-2020')
+normalizedata.set_ylabel('Percentage change%')
+
+#Tocalculate Portfolio Efficient Frontier we need logretrun,mean,covariance,correlation matrix
+logreturn=np.log(data/data.shift(1))
+print ('Log Return','\n', logreturn) 
+averagert= logreturn.mean()*250
+print('Mean=',averagert)
+covariance=logreturn.cov()*250
+print('Covariance=',covariance)
+
+correlation= np.corrcoef(logreturn)
+print('Correlation=',correlation)
+
+#calculate number of asset with len function
+numberasset=len(tickers)
+print('Number of Asset=',numberasset)
+#find random weight
+weight=np.random.random(numberasset)
+#to make all weight sum=1
+weight/= np.sum(weight)
+print('Random Weight=',weight)
+
+#Find Expected return of portfolio
+port_expectedrt=np.sum(weight*averagert)
+print('Portfolio Expected Return',port_expectedrt)
+#Find Portfolio Variance
+port_var= np.dot(weight.T,np.dot(covariance,weight))
+print('Portfolio Variance:',port_var)
+#Find Portfolio Volatility = Portfolio standard deviation
+port_vol=port_var**0.5
+print('Portfolio Volatility:',port_vol)
+
+#generate 10,000 observation through 
+port_expectedrt=[]
+port_vol=[]
+for x in range(1000):
+    weight=np.random.random(numberasset)
+    weight/= np.sum(weight)
+    port_expectedrt.append(np.sum(weight*averagert))
+    port_vol.append(np.sqrt(np.dot(weight.T,np.dot(covariance,weight))))
+
+#convert list in to numpy array
+port_expectedrt=np.array(port_expectedrt)
+port_vol=np.array(port_vol)
+print('Portfolio Expected Return','\n',port_expectedrt)
+print('Portfolio Volatility','\n',port_vol)
+
+portfolio= pd.DataFrame({'Expected Return':port_expectedrt,'Volatility':port_vol})
+print(portfolio)
+#plot Portfolio Efficient Frontier 
+portfolio.plot(x='Volatility',y='Expected Return',kind='scatter',figsize=(8,5));
+
+
